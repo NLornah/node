@@ -77,18 +77,32 @@ app.post("/login-user", async (req,res) =>{
     app.post("/userData", async (req, res) => {
       const { token } = req.body;
       try {
-        const user = jwt.verify(token, JWT_SECRET); 
+        const user = jwt.verify(token, JWT_SECRET, (err, res) => {
+          if (err) {
+            return "token expired";
+          }
+          return res;
+        });
         console.log(user);
-         const useremail = user .email;
-         user.findOne({email:useremail})
-         .then((data) => {
-          res.send({ status: "ok", data: data });
-        })
-        .catch((error) => {
-          res.send({ status: "error", data: error });
-        }); 
+        if (user == "token expired") {
+          return res.send({ status: "error", data: "token expired" });
+        }
+    
+        const useremail = user.email;
+        User.findOne({ email: useremail })
+          .then((data) => {
+            res.send({ status: "ok", data: data });
+          })
+          .catch((error) => {
+            res.send({ status: "error", data: error });
+          });
       } catch (error) { }
-    });   
+    });
+    
+    app.listen(5000, () => {
+      console.log("Server Started");
+    });
+ 
 
 app.post("/post", async(req,res)=>{
     console.log(req.body);
